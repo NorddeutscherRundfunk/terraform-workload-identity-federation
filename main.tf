@@ -27,10 +27,10 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   }
 }
 
-resource "google_service_account_iam_binding" "workload" {
-  provider           = google-beta
+resource "google_service_account_iam_member" "workload" {
   service_account_id = google_service_account.tf-github.id
-  members            = ["principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repository}"]
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${each.key}"
+  for_each           = concat(var.additional_repositories, [var.github_repository])
   role               = "roles/iam.workloadIdentityUser"
 }
 
