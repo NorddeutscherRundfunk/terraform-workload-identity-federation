@@ -27,10 +27,9 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   }
 }
 
-resource "google_service_account_iam_member" "workload" {
+resource "google_service_account_iam_binding" "workload" {
   service_account_id = google_service_account.tf-github.id
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${each.key}"
-  for_each           = concat(var.additional_repositories, [var.github_repository])
+  members            = formatlist("principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/%s", concat(var.additional_repositories, [var.github_repository]))
   role               = "roles/iam.workloadIdentityUser"
 }
 
