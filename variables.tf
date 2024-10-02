@@ -13,3 +13,8 @@ variable "attribute_condition" {
   type        = string
   default     = "assertion.repository_owner=='NorddeutscherRundfunk'"
 }
+
+variable "service_accounts" {
+  description = "Bucket service accounts (read-write)"
+  type        = set(string)
+}

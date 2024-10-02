@@ -1,6 +1,7 @@
 resource "google_service_account" "tf-github" {
   project    = var.project
-  account_id = "tf-github"
+  account_id = each.key
+  for_each   = var.service_accounts
 }
 
 resource "google_iam_workload_identity_pool" "github" {
@@ -31,19 +32,22 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 }
 
 resource "google_service_account_iam_binding" "workload" {
-  service_account_id = google_service_account.tf-github.id
+  service_account_id = google_service_account.tf-github[each.key].id
   members            = formatlist("principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/%s", concat(var.additional_repositories, [var.github_repository]))
   role               = "roles/iam.workloadIdentityUser"
+  for_each           = var.service_accounts
 }
 
 resource "google_project_iam_member" "tf-github" {
-  project = var.project
-  member  = "serviceAccount:${google_service_account.tf-github.email}"
-  role    = "roles/owner"
+  project  = var.project
+  member   = "serviceAccount:${google_service_account.tf-github[each.key].email}"
+  role     = "roles/owner"
+  for_each = var.service_accounts
 }
 
 resource "google_storage_bucket_iam_member" "tf-github" {
-  bucket = var.bucket_name
-  member = "serviceAccount:${google_service_account.tf-github.email}"
-  role   = "roles/storage.admin"
+  bucket   = var.bucket_name
+  member   = "serviceAccount:${google_service_account.tf-github[each.key].email}"
+  role     = "roles/storage.admin"
+  for_each = var.service_accounts
 }
